@@ -1,25 +1,38 @@
 """
-Descarga el dataset de préstamos de Lending Club (2007-2011) usado en este TP.
+Descarga el dataset de préstamos de Lending Club usado en este TP.
 
-Fuente: mirror en GitHub del dataset original de Lending Club, distribuido
-públicamente para uso académico. ~39.700 préstamos, 111 columnas, sin
-codificar (texto crudo), tal como lo publica Lending Club.
+Fuente: Kaggle, "Lending Club Loan Data" (wordsforthewise/lending-club).
+Se descarga solo el archivo de préstamos otorgados 2007-2018
+(`accepted_2007_to_2018Q4.csv.gz`, ~393 MB, 2,26M préstamos x 151 columnas).
+
+Requiere un token de la API de Kaggle (kaggle.com -> Settings -> API ->
+Create New Token), guardado según las instrucciones que muestra Kaggle
+(por ejemplo, en ~/.kaggle/access_token).
 
 Uso:
     python scripts/download_data.py
 """
-import os
-import urllib.request
+import subprocess
+from pathlib import Path
 
-URL = "https://raw.githubusercontent.com/akshayr89/Lending-Club---Exploratory-Data-Analysis/master/loan.csv"
-DEST = os.path.join(os.path.dirname(__file__), "..", "data", "loan.csv")
+DATASET = "wordsforthewise/lending-club"
+ARCHIVO = "accepted_2007_to_2018Q4.csv.gz"
+DESTINO = Path(__file__).resolve().parents[1] / "data"
+
 
 def main():
-    os.makedirs(os.path.dirname(DEST), exist_ok=True)
-    print(f"Descargando dataset desde:\n{URL}")
-    urllib.request.urlretrieve(URL, DEST)
-    size_mb = os.path.getsize(DEST) / (1024 * 1024)
-    print(f"Listo: {DEST} ({size_mb:.1f} MB)")
+    DESTINO.mkdir(exist_ok=True)
+    if (DESTINO / ARCHIVO).exists():
+        print(f"Ya existe: {DESTINO / ARCHIVO}")
+        return
+    print(f"Descargando {ARCHIVO} desde kaggle.com/datasets/{DATASET} ...")
+    subprocess.run(
+        ["kaggle", "datasets", "download", DATASET, "-f", ARCHIVO, "-p", str(DESTINO)],
+        check=True,
+    )
+    size_mb = (DESTINO / ARCHIVO).stat().st_size / (1024 * 1024)
+    print(f"Listo: {DESTINO / ARCHIVO} ({size_mb:.0f} MB)")
+
 
 if __name__ == "__main__":
     main()
