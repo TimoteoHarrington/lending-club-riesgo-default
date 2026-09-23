@@ -22,7 +22,7 @@ RUTA_RESUMEN = RAIZ / "data" / "resumen_todos_los_prestamos.parquet"
 # Última cosecha (mes de originación) en la que prácticamente todos los
 # préstamos ya terminaron al momento del corte del dataset (fin de 2018).
 # Se justifica con la tabla de % de préstamos resueltos por cosecha y plazo
-# (notebook 02, Sección 3).
+# (notebook 02, Sección 2.2).
 ULTIMA_COSECHA_MADURA = {
     36: pd.Timestamp("2015-12-01"),
     60: pd.Timestamp("2013-12-01"),

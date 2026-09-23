@@ -93,7 +93,7 @@ TARGET = ["loan_status"]
 # Features del modelo
 # ---------------------------------------------------------------------------
 
-# Buró extendido con cobertura completa desde 2013 (ver notebook, Sección 4)
+# Buró extendido con cobertura completa desde 2013 (ver notebook, Sección 5.2)
 BURO_EXTENDIDO = [
     "tot_coll_amt", "tot_cur_bal", "total_rev_hi_lim", "acc_open_past_24mths",
     "avg_cur_bal", "bc_open_to_buy", "bc_util", "mo_sin_old_il_acct",
@@ -166,7 +166,7 @@ EMP_LENGTH_ANIOS = {
 }
 
 # Hasta marzo de 2008 Lending Club registraba "nunca tuvo el evento" como 0 en
-# las variables "meses desde...", y después como vacío (ver notebook, Sección 4).
+# las variables "meses desde...", y después como vacío (ver notebook, Sección 5.3).
 FIN_CODIFICACION_CERO = pd.Timestamp("2008-03-01")
 
 
@@ -217,19 +217,25 @@ def construir_features(df):
     return out
 
 
-def calcular_lgd(df):
-    """LGD empírico de préstamos en default (NaN para los pagados).
+def calcular_perdida(df):
+    """Pérdida realizada de los préstamos en default (NaN para los pagados).
 
-    EAD = capital pendiente al momento del default
-        = monto financiado - capital cobrado.
-    Recupero neto = recuperos posteriores al charge-off - costo de cobranza.
-    LGD = 1 - recupero neto / EAD, acotado a [0, 1].
+    Devuelve tres columnas:
+    - ead: exposición al momento del default = monto financiado - capital cobrado.
+    - lgd: 1 - recupero neto / EAD, acotado a [0, 1]. El recupero neto son los
+      recuperos posteriores al charge-off menos el costo de cobranza.
+    - perdida_sobre_monto: (EAD - recupero neto) / monto financiado, acotada a
+      [0, 1]. Es la pérdida observada expresada como % del monto prestado, la
+      misma unidad que la prima de riesgo.
     """
     en_default = df["loan_status"] == "Charged Off"
     ead = df["funded_amnt"] - df["total_rec_prncp"]
     recupero_neto = df["recoveries"] - df["collection_recovery_fee"]
-    lgd = (1 - recupero_neto / ead.where(ead > 0)).clip(0, 1)
-    return lgd.where(en_default)
+    return pd.DataFrame({
+        "ead": ead,
+        "lgd": (1 - recupero_neto / ead.where(ead > 0)).clip(0, 1),
+        "perdida_sobre_monto": ((ead - recupero_neto) / df["funded_amnt"]).clip(0, 1),
+    }, index=df.index).where(en_default, axis=0)
 
 
 # ---------------------------------------------------------------------------

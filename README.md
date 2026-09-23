@@ -57,8 +57,8 @@ La primera ejecución del notebook lee el CSV completo por bloques y guarda parq
 1. **Target**: `loan_status` → binario (`Charged Off` = 1, `Fully Paid` = 0), excluyendo préstamos en curso.
 2. **Cosechas maduras**: excluir los préstamos en curso sesga la tasa de default de las cosechas recientes (censura). Se usan solo cosechas en las que prácticamente todos los préstamos ya terminaron, y solo el plazo de 36 meses (2007-2015; 618 mil préstamos).
 3. **Clasificación de variables**: las 151 columnas se clasifican en ex-ante (disponibles al solicitar), ex-post (excluidas por *data leakage*), benchmark de Lending Club (`grade`, `sub_grade`, `int_rate`) y datos de originación.
-4. **Split temporal**: train (jun-2007 a ago-2015) y test (sep-dic 2015) por fecha de originación, *antes* del EDA enfocado en el target.
-5. **LGD**: calculado empíricamente sobre la exposición al momento del default, con los préstamos de train en default.
+4. **Split temporal**: train (jun-2007 a ago-2015) y test (sep-dic 2015) por fecha de originación, apenas definida la población y *antes* de todo el EDA. El diagnóstico de calidad y el EDA se hacen solo sobre train.
+5. **LGD**: calculado empíricamente sobre la exposición al momento del default, con los préstamos de train en default. Se guarda además la pérdida realizada de cada préstamo (train y test) para validar la prima por banda en la E04.
 6. **Transformaciones**: fila a fila en `construir_features`; las que aprenden de los datos (winsorización, imputación, estandarización, one-hot) en un pipeline de scikit-learn ajustado solo con train.
 7. **Output final del sistema**: una prima de riesgo de default (PD × LGD × EAD/monto) por solicitante, no una tasa de interés final. La tasa base y el resto de la estructura de tasa (plazo, iliquidez) quedan fuera del alcance de este TP.
 
